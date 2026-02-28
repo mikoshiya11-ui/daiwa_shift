@@ -1,272 +1,821 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>DAIWA Shift OS</title>
-
-<style>
-:root{
-  --bg:#0b1220;
-  --card:rgba(255,255,255,.06);
-  --bd:rgba(255,255,255,.10);
-  --tx:#e8eefc;
-  --mut:#9fb0d3;
-  --accent:#28d17c;
-  --danger:#ff4d6d;
-}
-body{
-  margin:0;
-  font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;
-  background:var(--bg);
-  color:var(--tx);
-}
-.wrap{max-width:1000px;margin:auto;padding:20px}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:16px}
-h1{margin:0 0 12px;font-size:20px}
-
-button,input,select{
-  border-radius:12px;
-  border:1px solid var(--bd);
-  background:rgba(0,0,0,.3);
-  color:var(--tx);
-  padding:10px 12px;
-  font-weight:700;
-}
-button.primary{background:var(--accent);color:#001b0f;border:none}
-button.danger{background:rgba(255,77,109,.15);border:1px solid rgba(255,77,109,.4)}
-button:disabled{opacity:.4}
-
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.seg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px}
-
-.status{margin-top:10px;padding:10px;border-radius:12px;background:rgba(0,0,0,.4)}
-.status.bad{background:rgba(255,77,109,.2)}
-
-.list{margin-top:12px;display:flex;flex-direction:column;gap:8px}
-.item{
-  display:flex;
-  justify-content:space-between;
-  background:rgba(255,255,255,.05);
-  padding:10px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.08)
-}
-
-/* ==== calendar ==== */
-.calendar{
-  display:grid;
-  grid-template-columns:repeat(7,1fr);
-  gap:6px;
-  margin-top:12px;
-}
-.cal-head{
-  text-align:center;
-  font-weight:900;
-  color:var(--mut);
-}
-.cal-day{
-  background:rgba(255,255,255,.05);
-  border-radius:10px;
-  padding:8px;
-  min-height:70px;
-  cursor:pointer;
-  border:1px solid rgba(255,255,255,.05);
-  position:relative;
-}
-.cal-day:hover{background:rgba(255,255,255,.08)}
-.cal-day.has{
-  border:1px solid var(--accent);
-  background:rgba(40,209,124,.1);
-}
-.cal-num{
-  font-size:12px;
-  color:var(--mut);
-}
-.badge{
-  position:absolute;
-  bottom:6px;
-  right:6px;
-  font-size:11px;
-  background:var(--accent);
-  color:#002b16;
-  padding:2px 6px;
-  border-radius:999px;
-}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DAIWA Shift OS</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:rgba(255,255,255,.06);
+      --bd:rgba(255,255,255,.10);
+      --tx:#e8eefc;
+      --mut:#aab6d3;
+      --ok:#28d17c;
+      --bad:#ff4d6d;
+      --warn:#cfa7ff;
+      --shadow: 0 20px 70px rgba(0,0,0,.35);
+      --radius:18px;
+      --btnH:54px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+      background:var(--bg);
+      color:var(--tx);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+    .wrap{max-width:980px;margin:0 auto;padding:18px 14px 34px;}
+    .card{
+      background:var(--card);
+      border:1px solid var(--bd);
+      border-radius:var(--radius);
+      padding:14px 14px 16px;
+      box-shadow:var(--shadow);
+    }
+    h1{margin:0 0 10px;font-size:20px;font-weight:950;display:flex;gap:10px;align-items:center}
+    .mut{color:var(--mut);font-weight:900}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;}
+    @media(min-width:860px){.grid{grid-template-columns:1fr 360px;}}
+    input,select,button{
+      border-radius:14px;border:1px solid var(--bd);
+      background:rgba(0,0,0,.20);color:var(--tx);
+      padding:12px 14px;font-weight:900;font-size:16px;
+      min-height:var(--btnH);
+    }
+    input[type="date"], input[type="time"]{padding:10px 12px}
+    button{cursor:pointer}
+    button.primary{background:rgba(40,209,124,.90);color:#062012;border:none}
+    button.ghost{background:rgba(255,255,255,.06)}
+    button.danger{background:rgba(255,77,109,.15);border:1px solid rgba(255,77,109,.35)}
+    button.warn{background:rgba(207,167,255,.95);color:#220a35;border:none}
+    button:disabled{opacity:.35;cursor:not-allowed}
+    .status{
+      margin-top:10px;padding:12px 14px;border-radius:14px;
+      background:rgba(0,0,0,.25);
+      min-height:46px;white-space:pre-wrap;font-weight:950
+    }
+    .status.bad{background:rgba(255,77,109,.12);box-shadow:inset 0 0 0 1px rgba(255,77,109,.35)}
+    .box{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px}
+    .list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .item{
+      display:grid;grid-template-columns:1fr auto;
+      gap:10px;align-items:center;padding:10px;
+      border-radius:14px;border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05)
+    }
+    .item b{font-size:16px}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);font-weight:950}
+    .hint{margin-top:8px;color:rgba(255,255,255,.45);font-size:12px;line-height:1.6}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;}
+    @media(max-width:480px){ .two{grid-template-columns:1fr;} }
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{min-height:44px;padding:10px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-weight:950}
+    .tab.on{background:rgba(40,209,124,.18);border-color:rgba(40,209,124,.45)}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:950}
+    .badge.ok{background:rgba(40,209,124,.16);border:1px solid rgba(40,209,124,.35)}
+    .badge.warn{background:rgba(207,167,255,.14);border:1px solid rgba(207,167,255,.35)}
+    .badge.bad{background:rgba(255,77,109,.12);border:1px solid rgba(255,77,109,.35)}
+    .cal{width:100%;border-collapse:separate;border-spacing:8px}
+    .cal th{color:rgba(255,255,255,.60);font-size:12px;text-align:left;padding:0 4px}
+    .cal td{
+      vertical-align:top;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      border-radius:14px;
+      padding:10px;
+      min-height:92px;
+    }
+    .cal .day{font-weight:950}
+    .cal .date{color:rgba(255,255,255,.55);font-size:12px;margin-left:6px}
+    .cal .mini{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+    .mini .s{
+      display:flex;justify-content:space-between;gap:8px;
+      font-size:12px;font-weight:900;color:rgba(255,255,255,.86);
+      padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.08);
+    }
+    .mini .s span{white-space:nowrap}
+    .hr{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:rgba(255,255,255,.08);padding:2px 6px;border-radius:8px;border:1px solid rgba(255,255,255,.10)}
+  </style>
 </head>
 
 <body>
-<div class="wrap">
-<div class="card">
+  <div class="wrap">
+    <div class="card">
+      <h1>🗓️ DAIWA Shift OS</h1>
 
-<h1>🗓️ DAIWA Shift OS</h1>
+      <div class="grid">
+        <div>
+          <div class="row" style="justify-content:space-between">
+            <div class="mut">本日: <span id="today">-</span></div>
+            <div class="pill">
+              締め: <span id="closeDay">-</span>日 / <span id="period">-</span>
+            </div>
+          </div>
 
-<div class="row">
-  <input id="date" placeholder="yyyy/MM/dd">
-</div>
+          <div class="row" style="margin-top:10px;justify-content:space-between">
+            <div class="tabs">
+              <button class="tab on" id="tabDay">日付</button>
+              <button class="tab" id="tabRange">範囲 / カレンダー</button>
+            </div>
+            <div class="pill" title="API">
+              <span>API</span>
+              <span class="kbd" id="apiState">-</span>
+            </div>
+          </div>
 
-<div class="seg">
-  <button id="btnDay" class="primary">日</button>
-  <button id="btnWeek">週</button>
-  <button id="btnMonth">月</button>
-</div>
+          <!-- ============ DAY VIEW ============ -->
+          <div id="viewDay">
+            <div class="box" style="margin-top:12px">
+              <div class="mut">日付</div>
+              <div class="row" style="margin-top:8px">
+                <input id="datePick" type="date" style="flex:1;min-width:220px">
+                <input id="dateText" placeholder="yyyy/MM/dd" inputmode="numeric" style="flex:1;min-width:220px">
+                <button id="btnLoad">この日のシフトを見る</button>
+              </div>
+              <div class="hint">
+                どっちに入れてもOK（<span class="kbd">yyyy/MM/dd</span> に統一して保存/検索）
+              </div>
+            </div>
 
-<div class="status" id="status">初期化中…</div>
+            <div class="box" style="margin-top:12px">
+              <div class="mut">シフト追加 / 更新（最強入力）</div>
 
-<div id="main"></div>
+              <div class="row" style="margin-top:10px">
+                <select id="staff" style="flex:1;min-width:240px"></select>
+              </div>
 
-</div>
-</div>
+              <div class="two" style="margin-top:10px">
+                <div>
+                  <div class="mut" style="font-size:12px">START</div>
+                  <div class="row" style="margin-top:6px">
+                    <input id="start" type="time" step="60" style="flex:1;min-width:160px">
+                    <button class="ghost" id="btnNowS" title="今">今</button>
+                    <button class="ghost" id="btnPlus30S" title="+30分">+30</button>
+                  </div>
+                </div>
+                <div>
+                  <div class="mut" style="font-size:12px">END</div>
+                  <div class="row" style="margin-top:6px">
+                    <input id="end" type="time" step="60" style="flex:1;min-width:160px">
+                    <button class="ghost" id="btnNowE" title="今">今</button>
+                    <button class="ghost" id="btnPlus30E" title="+30分">+30</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px">
+                <button class="primary" id="btnSave" style="flex:1">保存（追加/更新）</button>
+                <button id="btnClear">入力クリア</button>
+              </div>
+
+              <div class="row" style="margin-top:10px;justify-content:space-between">
+                <div id="overnightBadge" class="badge warn" style="display:none">🌙 深夜またぎ（翌日扱い）</div>
+                <div class="hint" style="margin:0">
+                  同じ「日付＋スタッフID」は自動更新（重複行を作らない）
+                </div>
+              </div>
+
+              <div class="hint">
+                深夜またぎは <span class="kbd">END &lt; START</span> でも保存OK（後で集計時に翌日扱いにできるようにUI側で明示）
+              </div>
+            </div>
+
+            <div class="status" id="status">初期化中…</div>
+
+            <div class="box" style="margin-top:12px">
+              <div class="mut">この日のシフト</div>
+              <div class="list" id="list"></div>
+            </div>
+          </div>
+
+          <!-- ============ RANGE / CALENDAR VIEW ============ -->
+          <div id="viewRange" style="display:none">
+            <div class="box" style="margin-top:12px">
+              <div class="mut">期間で見る（一覧）</div>
+              <div class="row" style="margin-top:10px">
+                <input id="fromPick" type="date" style="flex:1;min-width:220px">
+                <input id="toPick" type="date" style="flex:1;min-width:220px">
+                <button id="btnRange">期間を表示</button>
+              </div>
+              <div class="hint">例：今週分 / 来週分など。カレンダーも自動更新。</div>
+            </div>
+
+            <div class="box" style="margin-top:12px">
+              <div class="mut">簡易カレンダー（週）</div>
+              <div class="row" style="margin-top:10px">
+                <button id="btnPrevWeek">← 前週</button>
+                <button id="btnThisWeek" class="ghost">今週</button>
+                <button id="btnNextWeek">次週 →</button>
+                <div class="pill">週: <span id="weekLabel">-</span></div>
+              </div>
+              <div class="hr"></div>
+              <table class="cal" id="cal"></table>
+              <div class="hint">※ カレンダーは「週単位」で <span class="kbd">listShiftRange</span> を叩いて表示します。</div>
+            </div>
+
+            <div class="box" style="margin-top:12px">
+              <div class="mut">期間のシフト（一覧）</div>
+              <div class="list" id="rangeList"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="mut">操作の流れ</div>
+          <div class="hint" style="margin-top:8px;line-height:1.8">
+            1) 日付を入れる → 「この日のシフトを見る」<br/>
+            2) スタッフ + START/END → 保存<br/>
+            3) 削除は行の「削除」<br/><br/>
+            範囲/カレンダー：<br/>
+            ・期間入力 → 一覧表示<br/>
+            ・週移動 → カレンダー更新
+          </div>
+
+          <div class="hint" style="margin-top:10px">
+            まず疎通確認はこれ：<br/>
+            <span class="kbd">/exec?token=...&fn=getInitial</span><br/>
+            で <span class="kbd">200</span> とJSONが返れば勝ち。
+          </div>
+
+          <div class="hint" style="margin-top:10px">
+            連打対策：保存/削除/期間表示は通信中に自動でdisabledになります。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
 <script>
-const API_URL="YOUR_GAS_URL";
-const TOKEN="DAIWA_SHIFT_2026";
+  // ====== ここだけあなたの環境に固定 ======
+  const API_URL = "https://script.google.com/macros/s/AKfycbx80UCLAshx79arn3xal3ea6z3XWEAHSche7lsoRmnJAY8D8E4iiUB6R6Patxf1gMBu/exec";
+  const TOKEN   = "DAIWA_SHIFT_2026";
+  // =======================================
 
-const el={
-  date:qs("#date"),
-  btnDay:qs("#btnDay"),
-  btnWeek:qs("#btnWeek"),
-  btnMonth:qs("#btnMonth"),
-  status:qs("#status"),
-  main:qs("#main")
-};
+  const el = {
+    today: qs("#today"),
+    closeDay: qs("#closeDay"),
+    period: qs("#period"),
+    apiState: qs("#apiState"),
 
-let mode="day";
+    tabDay: qs("#tabDay"),
+    tabRange: qs("#tabRange"),
+    viewDay: qs("#viewDay"),
+    viewRange: qs("#viewRange"),
 
-function qs(s){return document.querySelector(s)}
-function pad(n){return String(n).padStart(2,"0")}
-function todayStr(){const d=new Date();return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`}
+    datePick: qs("#datePick"),
+    dateText: qs("#dateText"),
+    btnLoad: qs("#btnLoad"),
 
-function setStatus(m,b=false){
-  el.status.textContent=m;
-  el.status.classList.toggle("bad",b);
-}
+    staff: qs("#staff"),
+    start: qs("#start"),
+    end: qs("#end"),
+    btnNowS: qs("#btnNowS"),
+    btnPlus30S: qs("#btnPlus30S"),
+    btnNowE: qs("#btnNowE"),
+    btnPlus30E: qs("#btnPlus30E"),
+    btnSave: qs("#btnSave"),
+    btnClear: qs("#btnClear"),
+    overnightBadge: qs("#overnightBadge"),
 
-async function apiGet(params){
-  const u=new URL(API_URL);
-  u.searchParams.set("token",TOKEN);
-  Object.entries(params).forEach(([k,v])=>u.searchParams.set(k,v));
-  const r=await fetch(u);
-  const j=await r.json();
-  if(!j.ok)throw new Error(j.message);
-  return j;
-}
+    list: qs("#list"),
+    status: qs("#status"),
 
-function setMode(m){
-  mode=m;
-  el.btnDay.classList.toggle("primary",m==="day");
-  el.btnWeek.classList.toggle("primary",m==="week");
-  el.btnMonth.classList.toggle("primary",m==="month");
-}
+    fromPick: qs("#fromPick"),
+    toPick: qs("#toPick"),
+    btnRange: qs("#btnRange"),
+    rangeList: qs("#rangeList"),
 
-async function load(){
-  const d=el.date.value.trim();
-  if(!/^\d{4}\/\d{2}\/\d{2}$/.test(d))return setStatus("日付が不正",true);
-  setStatus("読込中…");
-  try{
-    if(mode==="day"){
-      const r=await apiGet({fn:"listShift",date:d});
-      renderList(r.items);
-    }
-    if(mode==="week"){
-      const w=getWeek(d);
-      const r=await apiGet({fn:"listShiftRange",from:w.from,to:w.to});
-      renderList(r.items);
-    }
-    if(mode==="month"){
-      const m=getMonth(d);
-      const r=await apiGet({fn:"listShiftRange",from:m.from,to:m.to});
-      renderCalendar(m,r.items);
-    }
-    setStatus("表示完了");
-  }catch(e){setStatus(e.message,true)}
-}
+    btnPrevWeek: qs("#btnPrevWeek"),
+    btnThisWeek: qs("#btnThisWeek"),
+    btnNextWeek: qs("#btnNextWeek"),
+    weekLabel: qs("#weekLabel"),
+    cal: qs("#cal"),
+  };
 
-function renderList(items){
-  el.main.innerHTML="";
-  if(!items.length){el.main.innerHTML="シフトなし";return;}
-  const list=document.createElement("div");
-  list.className="list";
-  items.forEach(x=>{
-    const div=document.createElement("div");
-    div.className="item";
-    div.innerHTML=`<div>${x.date} ${x.name||x.staff_id}</div><div>${x.start}〜${x.end}</div>`;
-    list.appendChild(div);
-  });
-  el.main.appendChild(list);
-}
+  function qs(s){ return document.querySelector(s); }
+  function setStatus(msg, bad=false){
+    el.status.textContent = msg;
+    el.status.classList.toggle("bad", !!bad);
+  }
+  function pad2(n){ return String(n).padStart(2,"0"); }
 
-/* ==== calendar ==== */
-function renderCalendar(range,items){
-  el.main.innerHTML="";
-  const map={};
-  items.forEach(x=>{
-    if(!map[x.date])map[x.date]=[];
-    map[x.date].push(x);
-  });
+  function toYmdSlashFromDate(d){
+    return `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}`;
+  }
+  function toYmdDashFromDate(d){
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  }
+  function parseYmdDash(s){
+    const m = String(s||"").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return null;
+    return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), 0,0,0);
+  }
+  function normalizeDateAny(s){
+    const t = String(s||"").trim();
+    // yyyy/MM/dd
+    let m = t.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+    if (m) return `${m[1]}/${m[2]}/${m[3]}`;
+    // yyyy-MM-dd
+    m = t.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return `${m[1]}/${m[2]}/${m[3]}`;
+    return "";
+  }
+  function isDateSlash(s){ return /^\d{4}\/\d{2}\/\d{2}$/.test(String(s||"").trim()); }
+  function isTime(s){ return /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(s||"").trim()); }
 
-  const cal=document.createElement("div");
-  cal.className="calendar";
-
-  ["月","火","水","木","金","土","日"].forEach(d=>{
-    const h=document.createElement("div");
-    h.className="cal-head";
-    h.textContent=d;
-    cal.appendChild(h);
-  });
-
-  const start=new Date(range.from.replaceAll("/","-"));
-  const firstDay=(start.getDay()+6)%7;
-  for(let i=0;i<firstDay;i++){
-    cal.appendChild(document.createElement("div"));
+  function hhmmToMin(t){
+    const m = String(t||"").trim().match(/^(\d{2}):(\d{2})$/);
+    if(!m) return null;
+    return Number(m[1])*60 + Number(m[2]);
+  }
+  function addMinutesHHMM(t, add){
+    const base = hhmmToMin(t);
+    if(base === null) return "";
+    let v = base + Number(add||0);
+    v = ((v % (24*60)) + (24*60)) % (24*60);
+    const hh = Math.floor(v/60);
+    const mm = v%60;
+    return `${pad2(hh)}:${pad2(mm)}`;
+  }
+  function nowHHMM(){
+    const d = new Date();
+    return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
   }
 
-  let d=new Date(start);
-  while(d<=new Date(range.to.replaceAll("/","-"))){
-    const ds=`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`;
-    const cell=document.createElement("div");
-    cell.className="cal-day";
-    cell.innerHTML=`<div class="cal-num">${d.getDate()}</div>`;
-    if(map[ds]){
-      cell.classList.add("has");
-      const b=document.createElement("div");
-      b.className="badge";
-      b.textContent=map[ds].length;
-      cell.appendChild(b);
-      cell.onclick=()=>renderList(map[ds]);
-    }
-    cal.appendChild(cell);
-    d.setDate(d.getDate()+1);
+  function setTab(which){
+    const day = (which === "day");
+    el.tabDay.classList.toggle("on", day);
+    el.tabRange.classList.toggle("on", !day);
+    el.viewDay.style.display = day ? "" : "none";
+    el.viewRange.style.display = day ? "none" : "";
   }
 
-  el.main.appendChild(cal);
-}
+  async function fetchJson(url, opt){
+    const res = await fetch(url, opt);
+    const text = await res.text();
+    let j = null;
+    try{ j = JSON.parse(text); }catch(_){}
+    if(!res.ok){
+      const msg = (j && j.message) ? j.message : `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+    if(j && j.ok === false){
+      throw new Error(j.message || "API error");
+    }
+    if(!j){
+      throw new Error("JSON parse failed: " + text.slice(0, 120));
+    }
+    return j;
+  }
 
-/* ==== date helpers ==== */
-function getWeek(d){
-  const dt=new Date(d.replaceAll("/","-"));
-  const day=(dt.getDay()+6)%7;
-  dt.setDate(dt.getDate()-day);
-  const from=fmt(dt);
-  dt.setDate(dt.getDate()+6);
-  const to=fmt(dt);
-  return{from,to}
-}
-function getMonth(d){
-  const dt=new Date(d.replaceAll("/","-"));
-  const from=`${dt.getFullYear()}/${pad(dt.getMonth()+1)}/01`;
-  const to=`${dt.getFullYear()}/${pad(dt.getMonth()+1)}/${pad(new Date(dt.getFullYear(),dt.getMonth()+1,0).getDate())}`;
-  return{from,to}
-}
-function fmt(d){return`${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}`}
+  async function apiGet(params){
+    const u = new URL(API_URL);
+    u.searchParams.set("token", TOKEN);
+    Object.entries(params).forEach(([k,v])=>u.searchParams.set(k, v));
+    return await fetchJson(u.toString(), { method:"GET" });
+  }
 
-el.btnDay.onclick=()=>{setMode("day");load()}
-el.btnWeek.onclick=()=>{setMode("week");load()}
-el.btnMonth.onclick=()=>{setMode("month");load()}
+  async function apiPost(params){
+    const body = new URLSearchParams();
+    body.set("token", TOKEN);
+    Object.entries(params).forEach(([k,v])=>body.set(k, v));
+    return await fetchJson(API_URL, { method:"POST", body });
+  }
 
-el.date.value=todayStr();
-load();
+  function syncDateInputsFromPick(){
+    const d = parseYmdDash(el.datePick.value);
+    if(!d) return;
+    el.dateText.value = toYmdSlashFromDate(d);
+  }
+  function syncDateInputsFromText(){
+    const n = normalizeDateAny(el.dateText.value);
+    if(!n) return;
+    el.dateText.value = n;
+    const m = n.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+    const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), 0,0,0);
+    el.datePick.value = toYmdDashFromDate(d);
+  }
+
+  function currentDateSlash(){
+    const d = new Date();
+    return toYmdSlashFromDate(d);
+  }
+
+  function updateOvernightBadge(){
+    const s = String(el.start.value||"").trim();
+    const e = String(el.end.value||"").trim();
+    if(!isTime(s) || !isTime(e)){
+      el.overnightBadge.style.display = "none";
+      return;
+    }
+    const sm = hhmmToMin(s), em = hhmmToMin(e);
+    const overnight = (em < sm);
+    el.overnightBadge.style.display = overnight ? "" : "none";
+  }
+
+  async function init(){
+    try{
+      setStatus("初期化中…");
+      el.apiState.textContent = "…";
+
+      // デフォルト日付セット
+      const today = new Date();
+      el.datePick.value = toYmdDashFromDate(today);
+      el.dateText.value = toYmdSlashFromDate(today);
+
+      // rangeデフォルト（今週：月〜日）
+      const monday = startOfWeekMonday_(today);
+      const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+      el.fromPick.value = toYmdDashFromDate(monday);
+      el.toPick.value = toYmdDashFromDate(sunday);
+
+      // 疎通
+      const initData = await apiGet({ fn:"getInitial" });
+      el.today.textContent = initData.today || "-";
+      el.closeDay.textContent = initData.closing_day ?? "-";
+      el.period.textContent = `${initData.period_from || "-"}〜${initData.period_to || "-"}`;
+      el.apiState.textContent = "OK";
+
+      await loadStaff();
+      await loadShift();         // 日
+      await loadWeekCalendar();  // 週
+      setStatus("待機中");
+    }catch(e){
+      el.apiState.textContent = "NG";
+      setStatus("初期化エラー: " + e.message, true);
+    }
+  }
+
+  async function loadStaff(){
+    el.staff.innerHTML = "";
+    const r = await apiGet({ fn:"listStaff" });
+    const items = r.items || [];
+    if (!items.length){
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "（STAFFが空です）";
+      el.staff.appendChild(opt);
+      el.btnSave.disabled = true;
+      return;
+    }
+    items.forEach(s=>{
+      const opt = document.createElement("option");
+      opt.value = s.staff_id;
+      opt.textContent = `${s.staff_id} / ${s.name || ""}`;
+      el.staff.appendChild(opt);
+    });
+    el.btnSave.disabled = false;
+  }
+
+  async function loadShift(){
+    const date = normalizeDateAny(el.dateText.value);
+    if(!isDateSlash(date)) return setStatus("日付が不正です（yyyy/MM/dd）", true);
+
+    setStatus("シフト読込中…");
+    el.btnLoad.disabled = true;
+    try{
+      const r = await apiGet({ fn:"listShift", date });
+      renderDayList(r.items || [], date);
+      setStatus(`表示中: ${date}`);
+    }catch(e){
+      setStatus("読込失敗: " + e.message, true);
+    }finally{
+      el.btnLoad.disabled = false;
+    }
+  }
+
+  function renderDayList(items, date){
+    el.list.innerHTML = "";
+    if(!items.length){
+      el.list.innerHTML = `<div class="hint">この日のシフトはありません（${date}）</div>`;
+      return;
+    }
+    items.forEach(x=>{
+      const overnight = isTime(x.start) && isTime(x.end) && (hhmmToMin(x.end) < hhmmToMin(x.start));
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div>
+          <b>${(x.name && x.name.trim()) ? escapeHtml_(x.name) : escapeHtml_(x.staff_id)}</b>
+          <div class="hint">
+            ${escapeHtml_(x.staff_id)} / ${escapeHtml_(x.start)}〜${escapeHtml_(x.end)}
+            ${overnight ? `<span class="badge warn" style="margin-left:8px">🌙翌日</span>` : ``}
+          </div>
+        </div>
+        <div class="row">
+          <button class="danger" data-del="1" data-date="${escapeAttr_(x.date)}" data-staff="${escapeAttr_(x.staff_id)}">削除</button>
+        </div>
+      `;
+      el.list.appendChild(div);
+    });
+
+    el.list.querySelectorAll("button[data-del='1']").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const date = btn.getAttribute("data-date");
+        const staff = btn.getAttribute("data-staff");
+        if (!confirm(`${date} / ${staff} を削除しますか？`)) return;
+
+        // 連打防止
+        if (btn.disabled) return;
+        btn.disabled = true;
+
+        try{
+          await apiPost({ fn:"deleteShift", date, staff_id: staff });
+          setStatus("削除しました");
+          await loadShift();
+          await loadWeekCalendar();
+        }catch(e){
+          setStatus("削除失敗: " + e.message, true);
+        }finally{
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  // ===== Range / Calendar =====
+
+  function startOfWeekMonday_(d){
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0);
+    const day = x.getDay(); // 0=Sun
+    const diff = (day === 0) ? -6 : (1 - day);
+    x.setDate(x.getDate() + diff);
+    return x;
+  }
+
+  function weekLabel_(monday){
+    const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+    return `${toYmdSlashFromDate(monday)} 〜 ${toYmdSlashFromDate(sunday)}`;
+  }
+
+  async function loadShiftRange(){
+    const fromD = parseYmdDash(el.fromPick.value);
+    const toD   = parseYmdDash(el.toPick.value);
+    if(!fromD || !toD) return setStatus("from/to が不正です", true);
+
+    const from = toYmdSlashFromDate(fromD);
+    const to   = toYmdSlashFromDate(toD);
+
+    setStatus("期間読込中…");
+    el.btnRange.disabled = true;
+    try{
+      const r = await apiGet({ fn:"listShiftRange", from, to });
+      renderRangeList(r.items || [], from, to);
+      setStatus(`期間表示: ${from} 〜 ${to}`);
+    }catch(e){
+      setStatus("期間読込失敗: " + e.message, true);
+    }finally{
+      el.btnRange.disabled = false;
+    }
+  }
+
+  function renderRangeList(items, from, to){
+    el.rangeList.innerHTML = "";
+    if(!items.length){
+      el.rangeList.innerHTML = `<div class="hint">期間内のシフトはありません（${from}〜${to}）</div>`;
+      return;
+    }
+    items
+      .slice()
+      .sort((a,b)=>{
+        if(a.date !== b.date) return a.date < b.date ? -1 : 1;
+        if(a.staff_id !== b.staff_id) return a.staff_id < b.staff_id ? -1 : 1;
+        return 0;
+      })
+      .forEach(x=>{
+        const overnight = isTime(x.start) && isTime(x.end) && (hhmmToMin(x.end) < hhmmToMin(x.start));
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <div>
+            <b>${escapeHtml_(x.date)} / ${(x.name && x.name.trim()) ? escapeHtml_(x.name) : escapeHtml_(x.staff_id)}</b>
+            <div class="hint">
+              ${escapeHtml_(x.staff_id)} / ${escapeHtml_(x.start)}〜${escapeHtml_(x.end)}
+              ${overnight ? `<span class="badge warn" style="margin-left:8px">🌙翌日</span>` : ``}
+            </div>
+          </div>
+          <div class="row">
+            <button class="danger" data-del="1" data-date="${escapeAttr_(x.date)}" data-staff="${escapeAttr_(x.staff_id)}">削除</button>
+          </div>
+        `;
+        el.rangeList.appendChild(div);
+      });
+
+    // 期間側削除も対応
+    el.rangeList.querySelectorAll("button[data-del='1']").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const date = btn.getAttribute("data-date");
+        const staff = btn.getAttribute("data-staff");
+        if (!confirm(`${date} / ${staff} を削除しますか？`)) return;
+        if (btn.disabled) return;
+        btn.disabled = true;
+        try{
+          await apiPost({ fn:"deleteShift", date, staff_id: staff });
+          setStatus("削除しました");
+          await loadShift();
+          await loadShiftRange();
+          await loadWeekCalendar();
+        }catch(e){
+          setStatus("削除失敗: " + e.message, true);
+        }finally{
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  async function loadWeekCalendar(anchorDate){
+    const base = anchorDate ? new Date(anchorDate) : parseYmdDash(el.datePick.value) || new Date();
+    const monday = startOfWeekMonday_(base);
+    el.weekLabel.textContent = weekLabel_(monday);
+
+    const from = toYmdSlashFromDate(monday);
+    const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+    const to = toYmdSlashFromDate(sunday);
+
+    // listShiftRange を叩いて週分取得
+    try{
+      const r = await apiGet({ fn:"listShiftRange", from, to });
+      renderWeekCalendar_(monday, r.items || []);
+    }catch(e){
+      // カレンダーだけ失敗しても致命傷にしない
+      el.cal.innerHTML = `<tr><td class="hint">カレンダー読込失敗: ${escapeHtml_(e.message)}</td></tr>`;
+    }
+  }
+
+  function renderWeekCalendar_(monday, items){
+    const days = ["月","火","水","木","金","土","日"];
+    const byDate = {};
+    items.forEach(x=>{
+      const d = String(x.date||"").trim();
+      if(!d) return;
+      if(!byDate[d]) byDate[d] = [];
+      byDate[d].push(x);
+    });
+
+    // header
+    let html = `<thead><tr>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead>`;
+    html += `<tbody><tr>`;
+    for(let i=0;i<7;i++){
+      const d = new Date(monday); d.setDate(monday.getDate()+i);
+      const ds = toYmdSlashFromDate(d);
+      const list = (byDate[ds] || []).slice().sort((a,b)=>{
+        if(a.start !== b.start) return a.start < b.start ? -1 : 1;
+        if(a.staff_id !== b.staff_id) return a.staff_id < b.staff_id ? -1 : 1;
+        return 0;
+      });
+
+      const minis = list.map(x=>{
+        const label = (x.name && x.name.trim()) ? x.name : x.staff_id;
+        const overnight = isTime(x.start) && isTime(x.end) && (hhmmToMin(x.end) < hhmmToMin(x.start));
+        return `
+          <div class="s" title="${escapeAttr_(x.staff_id)}">
+            <span>${escapeHtml_(label)}</span>
+            <span>${escapeHtml_(x.start)}-${escapeHtml_(x.end)}${overnight ? "🌙" : ""}</span>
+          </div>
+        `;
+      }).join("");
+
+      html += `
+        <td>
+          <div class="day">${days[i]}<span class="date">${escapeHtml_(ds)}</span></div>
+          <div class="mini">${minis || `<div class="hint">-</div>`}</div>
+        </td>
+      `;
+    }
+    html += `</tr></tbody>`;
+    el.cal.innerHTML = html;
+  }
+
+  // ===== Events =====
+
+  el.tabDay.addEventListener("click", ()=>setTab("day"));
+  el.tabRange.addEventListener("click", ()=>setTab("range"));
+
+  el.datePick.addEventListener("change", ()=>{
+    syncDateInputsFromPick();
+    loadShift();
+    loadWeekCalendar(parseYmdDash(el.datePick.value));
+  });
+
+  el.dateText.addEventListener("change", ()=>{
+    syncDateInputsFromText();
+    loadShift();
+    loadWeekCalendar(parseYmdDash(el.datePick.value));
+  });
+
+  el.btnLoad.addEventListener("click", ()=>{
+    syncDateInputsFromText();
+    loadShift();
+  });
+
+  el.start.addEventListener("input", updateOvernightBadge);
+  el.end.addEventListener("input", updateOvernightBadge);
+
+  el.btnNowS.addEventListener("click", ()=>{
+    el.start.value = nowHHMM();
+    updateOvernightBadge();
+  });
+  el.btnPlus30S.addEventListener("click", ()=>{
+    el.start.value = addMinutesHHMM(el.start.value || nowHHMM(), 30);
+    updateOvernightBadge();
+  });
+  el.btnNowE.addEventListener("click", ()=>{
+    el.end.value = nowHHMM();
+    updateOvernightBadge();
+  });
+  el.btnPlus30E.addEventListener("click", ()=>{
+    el.end.value = addMinutesHHMM(el.end.value || nowHHMM(), 30);
+    updateOvernightBadge();
+  });
+
+  el.btnClear.addEventListener("click", ()=>{
+    el.start.value = "";
+    el.end.value = "";
+    updateOvernightBadge();
+    setStatus("入力をクリアしました");
+  });
+
+  el.btnSave.addEventListener("click", async ()=>{
+    // 連打防止
+    if (el.btnSave.disabled) return;
+    el.btnSave.disabled = true;
+
+    try{
+      syncDateInputsFromText();
+      const date  = normalizeDateAny(el.dateText.value);
+      const staff = String(el.staff.value||"").trim();
+      const start = String(el.start.value||"").trim();
+      const end   = String(el.end.value||"").trim();
+
+      if(!isDateSlash(date)) throw new Error("日付が不正（yyyy/MM/dd）");
+      if(!staff) throw new Error("スタッフを選んでください");
+      if(!isTime(start) || !isTime(end)) throw new Error("時間が不正（HH:mm）");
+
+      // 深夜またぎはUIで明示（ただし保存はそのまま）
+      const overnight = (hhmmToMin(end) < hhmmToMin(start));
+      setStatus(overnight ? "保存中…（深夜またぎ：翌日扱い）" : "保存中…");
+
+      await apiPost({ fn:"upsertShift", date, staff_id: staff, start, end });
+
+      setStatus(overnight ? "保存しました（深夜またぎ）" : "保存しました");
+      await loadShift();
+      await loadShiftRange();    // 範囲表示してる可能性があるので更新
+      await loadWeekCalendar(parseYmdDash(el.datePick.value));
+    }catch(e){
+      setStatus("保存失敗: " + e.message, true);
+    }finally{
+      el.btnSave.disabled = false;
+    }
+  });
+
+  el.btnRange.addEventListener("click", async ()=>{
+    if (el.btnRange.disabled) return;
+    await loadShiftRange();
+  });
+
+  el.btnPrevWeek.addEventListener("click", async ()=>{
+    const base = parseYmdDash(el.datePick.value) || new Date();
+    base.setDate(base.getDate() - 7);
+    el.datePick.value = toYmdDashFromDate(base);
+    syncDateInputsFromPick();
+    await loadWeekCalendar(base);
+  });
+
+  el.btnThisWeek.addEventListener("click", async ()=>{
+    const now = new Date();
+    el.datePick.value = toYmdDashFromDate(now);
+    syncDateInputsFromPick();
+    await loadWeekCalendar(now);
+  });
+
+  el.btnNextWeek.addEventListener("click", async ()=>{
+    const base = parseYmdDash(el.datePick.value) || new Date();
+    base.setDate(base.getDate() + 7);
+    el.datePick.value = toYmdDashFromDate(base);
+    syncDateInputsFromPick();
+    await loadWeekCalendar(base);
+  });
+
+  // ===== Safety: HTML escape =====
+  function escapeHtml_(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#39;");
+  }
+  function escapeAttr_(s){
+    return escapeHtml_(s).replaceAll("\n"," ");
+  }
+
+  init();
 </script>
 </body>
 </html> 
