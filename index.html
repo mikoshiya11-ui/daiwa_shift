@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DAIWA Shift OS</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:rgba(255,255,255,.06);
+      --bd:rgba(255,255,255,.10);
+      --tx:#e8eefc;
+      --mut:#aab6d3;
+      --ok:#28d17c;
+      --bad:#ff4d6d;
+      --warn:#cfa7ff;
+    }
+    body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;background:var(--bg);color:var(--tx);}
+    .wrap{max-width:920px;margin:0 auto;padding:18px 14px 32px;}
+    .card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:14px 14px 16px;box-shadow:0 20px 70px rgba(0,0,0,.35);}
+    h1{margin:0 0 10px;font-size:20px;font-weight:900;display:flex;gap:10px;align-items:center}
+    .mut{color:var(--mut);font-weight:800}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;}
+    @media(min-width:820px){.grid{grid-template-columns:1fr 360px;}}
+    input,select,button{
+      border-radius:14px;border:1px solid var(--bd);
+      background:rgba(0,0,0,.20);color:var(--tx);
+      padding:12px 14px;font-weight:900;font-size:16px;
+    }
+    button{cursor:pointer}
+    button.primary{background:rgba(40,209,124,.85);color:#062012;border:none}
+    button.danger{background:rgba(255,77,109,.15);border:1px solid rgba(255,77,109,.35)}
+    button:disabled{opacity:.35;cursor:not-allowed}
+    .status{margin-top:10px;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.25);min-height:44px;white-space:pre-wrap;font-weight:900}
+    .status.bad{background:rgba(255,77,109,.12);box-shadow:inset 0 0 0 1px rgba(255,77,109,.35)}
+    .box{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px}
+    .list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.05)}
+    .item b{font-size:16px}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);font-weight:900}
+    .hint{margin-top:8px;color:rgba(255,255,255,.45);font-size:12px;line-height:1.5}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:10px; width:100%;}
+    @media(max-width:480px){ .two{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>🗓️ DAIWA Shift OS</h1>
+
+      <div class="grid">
+        <div>
+          <div class="row" style="justify-content:space-between">
+            <div class="mut">本日: <span id="today">-</span></div>
+            <div class="pill">締め: <span id="closeDay">-</span>日 / <span id="period">-</span></div>
+          </div>
+
+          <div class="box" style="margin-top:12px">
+            <div class="mut">日付</div>
+            <div class="row" style="margin-top:8px">
+              <input id="date" placeholder="yyyy/MM/dd" inputmode="numeric" style="flex:1;min-width:240px">
+              <button id="btnLoad">この日のシフトを見る</button>
+            </div>
+            <div class="hint">例：2026/02/28（スラッシュ区切り）</div>
+          </div>
+
+          <div class="box" style="margin-top:12px">
+            <div class="mut">シフト追加 / 更新</div>
+            <div class="row" style="margin-top:10px">
+              <select id="staff" style="flex:1;min-width:240px"></select>
+            </div>
+            <div class="two" style="margin-top:10px">
+              <input id="start" placeholder="START HH:mm" inputmode="numeric">
+              <input id="end" placeholder="END HH:mm" inputmode="numeric">
+            </div>
+            <div class="row" style="margin-top:10px">
+              <button class="primary" id="btnSave" style="flex:1">保存（追加/更新）</button>
+              <button id="btnClear">入力クリア</button>
+            </div>
+            <div class="hint">同じ「日付＋スタッフID」は自動で更新（重複行を作らない）</div>
+          </div>
+
+          <div class="status" id="status">初期化中…</div>
+
+          <div class="box" style="margin-top:12px">
+            <div class="mut">この日のシフト</div>
+            <div class="list" id="list"></div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="mut">操作の流れ</div>
+          <div class="hint" style="margin-top:8px;line-height:1.8">
+            1) 日付を入れる → 「この日のシフトを見る」<br/>
+            2) スタッフ選択 + START/END → 保存<br/>
+            3) 削除は行の「削除」ボタン
+          </div>
+          <div class="hint" style="margin-top:10px">
+            ※ GitHub Pages から GAS の /exec を叩きます。<br/>
+            ※ もし通信が失敗したら、まず getInitial のURLを直で開いて確認。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ====== ここだけあなたの環境に固定 ======
+  const API_URL = "https://script.google.com/macros/s/AKfycbx80UCLAshx79arn3xal3ea6z3XWEAHSche7lsoRmnJAY8D8E4iiUB6R6Patxf1gMBu/exec";
+  const TOKEN  = "DAIWA_SHIFT_2026";
+  // =======================================
+
+  const el = {
+    today: qs("#today"),
+    closeDay: qs("#closeDay"),
+    period: qs("#period"),
+    date: qs("#date"),
+    staff: qs("#staff"),
+    start: qs("#start"),
+    end: qs("#end"),
+    btnLoad: qs("#btnLoad"),
+    btnSave: qs("#btnSave"),
+    btnClear: qs("#btnClear"),
+    list: qs("#list"),
+    status: qs("#status"),
+  };
+
+  function qs(s){ return document.querySelector(s); }
+  function setStatus(msg, bad=false){
+    el.status.textContent = msg;
+    el.status.classList.toggle("bad", !!bad);
+  }
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function todayStr(){
+    const d = new Date();
+    return `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}`;
+  }
+  function isDate(s){ return /^\d{4}\/\d{2}\/\d{2}$/.test(String(s||"").trim()); }
+  function isTime(s){ return /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(s||"").trim()); }
+
+  async function apiGet(params){
+    const u = new URL(API_URL);
+    u.searchParams.set("token", TOKEN);
+    Object.entries(params).forEach(([k,v])=>u.searchParams.set(k, v));
+    const res = await fetch(u.toString(), { method:"GET" });
+    const j = await res.json();
+    if (!res.ok || j.ok === false) throw new Error(j.message || `HTTP ${res.status}`);
+    return j;
+  }
+
+  async function apiPost(params){
+    const body = new URLSearchParams();
+    body.set("token", TOKEN);
+    Object.entries(params).forEach(([k,v])=>body.set(k, v));
+    const res = await fetch(API_URL, { method:"POST", body });
+    const j = await res.json();
+    if (!res.ok || j.ok === false) throw new Error(j.message || `HTTP ${res.status}`);
+    return j;
+  }
+
+  async function init(){
+    try{
+      el.date.value = todayStr();
+      setStatus("初期化中…");
+      const init = await apiGet({ fn:"getInitial" });
+      el.today.textContent = init.today || "-";
+      el.closeDay.textContent = init.closing_day ?? "-";
+      el.period.textContent = `${init.period_from}〜${init.period_to}`;
+
+      await loadStaff();
+      await loadShift();
+      setStatus("待機中");
+    }catch(e){
+      setStatus("初期化エラー: " + e.message, true);
+    }
+  }
+
+  async function loadStaff(){
+    el.staff.innerHTML = "";
+    const r = await apiGet({ fn:"listStaff" });
+    const items = r.items || [];
+    if (!items.length){
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "（STAFFが空です）";
+      el.staff.appendChild(opt);
+      el.btnSave.disabled = true;
+      return;
+    }
+    items.forEach(s=>{
+      const opt = document.createElement("option");
+      opt.value = s.staff_id;
+      opt.textContent = `${s.staff_id} / ${s.name || ""}`;
+      el.staff.appendChild(opt);
+    });
+    el.btnSave.disabled = false;
+  }
+
+  async function loadShift(){
+    const date = String(el.date.value||"").trim();
+    if (!isDate(date)) return setStatus("日付が不正です（yyyy/MM/dd）", true);
+
+    setStatus("シフト読込中…");
+    el.btnLoad.disabled = true;
+    try{
+      const r = await apiGet({ fn:"listShift", date });
+      renderList(r.items || []);
+      setStatus(`表示中: ${date}`);
+    }catch(e){
+      setStatus("読込失敗: " + e.message, true);
+    }finally{
+      el.btnLoad.disabled = false;
+    }
+  }
+
+  function renderList(items){
+    el.list.innerHTML = "";
+    if (!items.length){
+      el.list.innerHTML = `<div class="hint">この日のシフトはありません</div>`;
+      return;
+    }
+    items.forEach(x=>{
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div>
+          <b>${x.name ? x.name : x.staff_id}</b>
+          <div class="hint">${x.staff_id} / ${x.start}〜${x.end}</div>
+        </div>
+        <div class="row">
+          <button class="danger" data-del="1" data-date="${x.date}" data-staff="${x.staff_id}">削除</button>
+        </div>
+      `;
+      el.list.appendChild(div);
+    });
+
+    el.list.querySelectorAll("button[data-del='1']").forEach(btn=>{
+      btn.addEventListener("click", async ()=>{
+        const date = btn.getAttribute("data-date");
+        const staff = btn.getAttribute("data-staff");
+        if (!confirm(`${date} / ${staff} を削除しますか？`)) return;
+
+        btn.disabled = true;
+        try{
+          await apiPost({ fn:"deleteShift", date, staff_id: staff });
+          setStatus("削除しました");
+          await loadShift();
+        }catch(e){
+          setStatus("削除失敗: " + e.message, true);
+        }finally{
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+
+  el.btnLoad.addEventListener("click", loadShift);
+
+  el.btnClear.addEventListener("click", ()=>{
+    el.start.value = "";
+    el.end.value = "";
+    setStatus("入力をクリアしました");
+  });
+
+  el.btnSave.addEventListener("click", async ()=>{
+    // 連打防止
+    if (el.btnSave.disabled) return;
+    el.btnSave.disabled = true;
+
+    try{
+      const date = String(el.date.value||"").trim();
+      const staff = String(el.staff.value||"").trim();
+      const start = String(el.start.value||"").trim();
+      const end = String(el.end.value||"").trim();
+
+      if (!isDate(date)) throw new Error("日付が不正（yyyy/MM/dd）");
+      if (!staff) throw new Error("スタッフを選んでください");
+      if (!isTime(start) || !isTime(end)) throw new Error("時間が不正（HH:mm）");
+
+      setStatus("保存中…");
+      await apiPost({ fn:"upsertShift", date, staff_id: staff, start, end });
+      setStatus("保存しました");
+      await loadShift();
+    }catch(e){
+      setStatus("保存失敗: " + e.message, true);
+    }finally{
+      el.btnSave.disabled = false;
+    }
+  });
+
+  init();
+</script>
+</body>
+</html> 
