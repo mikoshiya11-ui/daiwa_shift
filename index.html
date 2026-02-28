@@ -16,7 +16,7 @@
       --warn:#cfa7ff;
     }
     body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;background:var(--bg);color:var(--tx);}
-    .wrap{max-width:920px;margin:0 auto;padding:18px 14px 32px;}
+    .wrap{max-width:980px;margin:0 auto;padding:18px 14px 32px;}
     .card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:14px 14px 16px;box-shadow:0 20px 70px rgba(0,0,0,.35);}
     h1{margin:0 0 10px;font-size:20px;font-weight:900;display:flex;gap:10px;align-items:center}
     .mut{color:var(--mut);font-weight:800}
@@ -42,6 +42,29 @@
     .hint{margin-top:8px;color:rgba(255,255,255,.45);font-size:12px;line-height:1.5}
     .two{display:grid;grid-template-columns:1fr 1fr;gap:10px; width:100%;}
     @media(max-width:480px){ .two{grid-template-columns:1fr;} }
+
+    /* Calendar */
+    .calHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .calGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:10px}
+    .calDow{opacity:.7;font-size:12px;font-weight:900;text-align:center}
+    .calCell{
+      min-height:70px;border-radius:14px;border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04);padding:8px;cursor:pointer;
+      display:flex;flex-direction:column;gap:6px;
+    }
+    .calCell.mute{opacity:.35;cursor:default}
+    .calCell.active{box-shadow:inset 0 0 0 2px rgba(40,209,124,.65)}
+    .calNum{font-weight:900}
+    .calBadge{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:900;
+      padding:4px 8px;border-radius:999px;background:rgba(40,209,124,.15);border:1px solid rgba(40,209,124,.35);width:max-content
+    }
+
+    /* Week view */
+    .wkDay{margin-top:10px;padding:10px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04)}
+    .wkDayTitle{display:flex;justify-content:space-between;align-items:center;font-weight:900}
+    .wkItems{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+    .wkItem{display:flex;justify-content:space-between;gap:8px;font-weight:900;opacity:.95}
+    .wkItem .sub{opacity:.6;font-size:12px;font-weight:800}
   </style>
 </head>
 <body>
@@ -57,10 +80,19 @@
           </div>
 
           <div class="box" style="margin-top:12px">
-            <div class="mut">日付</div>
+            <div class="row" style="justify-content:space-between;gap:12px">
+              <div class="mut">表示</div>
+              <select id="viewMode">
+                <option value="day">日（Day）</option>
+                <option value="week">週（Week）</option>
+                <option value="month">月（Month）</option>
+              </select>
+            </div>
+
+            <div class="mut" style="margin-top:10px">日付</div>
             <div class="row" style="margin-top:8px">
               <input id="date" placeholder="yyyy/MM/dd" inputmode="numeric" style="flex:1;min-width:240px">
-              <button id="btnLoad">この日のシフトを見る</button>
+              <button id="btnLoad">表示する</button>
             </div>
             <div class="hint">例：2026/02/28（スラッシュ区切り）</div>
           </div>
@@ -83,16 +115,39 @@
 
           <div class="status" id="status">初期化中…</div>
 
-          <div class="box" style="margin-top:12px">
+          <!-- Day list -->
+          <div class="box" style="margin-top:12px" id="dayBox">
             <div class="mut">この日のシフト</div>
             <div class="list" id="list"></div>
           </div>
+
+          <!-- Week view -->
+          <div class="box" style="margin-top:12px;display:none" id="weekBox">
+            <div class="mut">週表示</div>
+            <div id="weekWrap"></div>
+          </div>
+
+          <!-- Month view -->
+          <div class="box" style="margin-top:12px;display:none" id="monthBox">
+            <div class="calHead">
+              <div class="mut">月表示</div>
+              <div class="row">
+                <button id="btnPrevMonth">◀</button>
+                <div class="pill"><span id="monthLabel">-</span></div>
+                <button id="btnNextMonth">▶</button>
+              </div>
+            </div>
+            <div class="calGrid" id="calDow"></div>
+            <div class="calGrid" id="calGrid"></div>
+            <div class="hint">セルをタップすると、その日にジャンプして日表示できます</div>
+          </div>
+
         </div>
 
         <div class="box">
           <div class="mut">操作の流れ</div>
           <div class="hint" style="margin-top:8px;line-height:1.8">
-            1) 日付を入れる → 「この日のシフトを見る」<br/>
+            1) 日付を入れて「表示する」<br/>
             2) スタッフ選択 + START/END → 保存<br/>
             3) 削除は行の「削除」ボタン
           </div>
@@ -116,6 +171,7 @@
     closeDay: qs("#closeDay"),
     period: qs("#period"),
     date: qs("#date"),
+    viewMode: qs("#viewMode"),
     staff: qs("#staff"),
     start: qs("#start"),
     end: qs("#end"),
@@ -124,6 +180,23 @@
     btnClear: qs("#btnClear"),
     list: qs("#list"),
     status: qs("#status"),
+
+    dayBox: qs("#dayBox"),
+    weekBox: qs("#weekBox"),
+    weekWrap: qs("#weekWrap"),
+
+    monthBox: qs("#monthBox"),
+    btnPrevMonth: qs("#btnPrevMonth"),
+    btnNextMonth: qs("#btnNextMonth"),
+    monthLabel: qs("#monthLabel"),
+    calDow: qs("#calDow"),
+    calGrid: qs("#calGrid"),
+  };
+
+  let state = {
+    staffMap: {},         // staff_id -> name
+    byDate: {},           // "yyyy/MM/dd" -> items[]
+    monthCursor: null,    // Date (1st of month)
   };
 
   function qs(s){ return document.querySelector(s); }
@@ -132,12 +205,20 @@
     el.status.classList.toggle("bad", !!bad);
   }
   function pad2(n){ return String(n).padStart(2,"0"); }
-  function todayStr(){
-    const d = new Date();
-    return `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}`;
+  function fmtDate(d){ return `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}`; }
+  function parseDate(s){
+    const m = String(s||"").trim().match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+    if(!m) return null;
+    const d = new Date(Number(m[1]), Number(m[2])-1, Number(m[3]));
+    if (Number.isNaN(d.getTime())) return null;
+    return d;
   }
+  function todayStr(){ return fmtDate(new Date()); }
   function isDate(s){ return /^\d{4}\/\d{2}\/\d{2}$/.test(String(s||"").trim()); }
   function isTime(s){ return /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(s||"").trim()); }
+  function esc(s){
+    return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
 
   async function apiGet(params){
     const u = new URL(API_URL);
@@ -159,17 +240,25 @@
     return j;
   }
 
+  function setViewMode(mode){
+    el.dayBox.style.display = (mode==="day") ? "" : "none";
+    el.weekBox.style.display = (mode==="week") ? "" : "none";
+    el.monthBox.style.display = (mode==="month") ? "" : "none";
+  }
+
   async function init(){
     try{
       el.date.value = todayStr();
+      state.monthCursor = startOfMonth(parseDate(el.date.value) || new Date());
       setStatus("初期化中…");
+
       const init = await apiGet({ fn:"getInitial" });
       el.today.textContent = init.today || "-";
       el.closeDay.textContent = init.closing_day ?? "-";
       el.period.textContent = `${init.period_from}〜${init.period_to}`;
 
       await loadStaff();
-      await loadShift();
+      await loadByMode(); // 初期は day
       setStatus("待機中");
     }catch(e){
       setStatus("初期化エラー: " + e.message, true);
@@ -180,6 +269,7 @@
     el.staff.innerHTML = "";
     const r = await apiGet({ fn:"listStaff" });
     const items = r.items || [];
+    state.staffMap = {};
     if (!items.length){
       const opt = document.createElement("option");
       opt.value = "";
@@ -189,6 +279,7 @@
       return;
     }
     items.forEach(s=>{
+      state.staffMap[s.staff_id] = s.name || "";
       const opt = document.createElement("option");
       opt.value = s.staff_id;
       opt.textContent = `${s.staff_id} / ${s.name || ""}`;
@@ -197,7 +288,16 @@
     el.btnSave.disabled = false;
   }
 
-  async function loadShift(){
+  async function loadByMode(){
+    const mode = el.viewMode.value;
+    setViewMode(mode);
+
+    if (mode === "day") return loadShiftDay();
+    if (mode === "week") return loadShiftWeek();
+    if (mode === "month") return loadShiftMonth();
+  }
+
+  async function loadShiftDay(){
     const date = String(el.date.value||"").trim();
     if (!isDate(date)) return setStatus("日付が不正です（yyyy/MM/dd）", true);
 
@@ -205,7 +305,7 @@
     el.btnLoad.disabled = true;
     try{
       const r = await apiGet({ fn:"listShift", date });
-      renderList(r.items || []);
+      renderDayList(r.items || []);
       setStatus(`表示中: ${date}`);
     }catch(e){
       setStatus("読込失敗: " + e.message, true);
@@ -214,22 +314,112 @@
     }
   }
 
-  function renderList(items){
+  // 週の開始は「月曜」にしてる（必要なら日曜始まりに変えられる）
+  async function loadShiftWeek(){
+    const base = parseDate(el.date.value) || new Date();
+    const from = startOfWeek(base);
+    const to = addDays(from, 6);
+
+    setStatus(`週読込中… ${fmtDate(from)}〜${fmtDate(to)}`);
+    el.btnLoad.disabled = true;
+    try{
+      const items = await fetchRange(fmtDate(from), fmtDate(to));
+      state.byDate = groupByDate(items);
+      renderWeek(from);
+      setStatus(`週表示: ${fmtDate(from)}〜${fmtDate(to)}`);
+    }catch(e){
+      setStatus("週読込失敗: " + e.message, true);
+    }finally{
+      el.btnLoad.disabled = false;
+    }
+  }
+
+  async function loadShiftMonth(){
+    const base = parseDate(el.date.value) || new Date();
+    state.monthCursor = startOfMonth(base);
+
+    const from = startOfWeek(startOfMonth(state.monthCursor));
+    const to = addDays(from, 41); // 6週表示（42マス）
+
+    setStatus(`月読込中… ${fmtDate(from)}〜${fmtDate(to)}`);
+    el.btnLoad.disabled = true;
+    try{
+      const items = await fetchRange(fmtDate(from), fmtDate(to));
+      state.byDate = groupByDate(items);
+      renderMonth(state.monthCursor);
+      setStatus(`月表示: ${state.monthCursor.getFullYear()}/${pad2(state.monthCursor.getMonth()+1)}`);
+    }catch(e){
+      setStatus("月読込失敗: " + e.message, true);
+    }finally{
+      el.btnLoad.disabled = false;
+    }
+  }
+
+  // まず listShiftRange を試す。なければ日ごとに listShift を叩いてフォールバック
+  async function fetchRange(from, to){
+    try{
+      const r = await apiGet({ fn:"listShiftRange", from, to });
+      return r.items || [];
+    }catch(e){
+      // フォールバック（GAS側にlistShiftRangeが無い場合）
+      const msg = String(e.message || "");
+      // token invalid など本質エラーはそのまま投げる
+      if (msg.includes("token")) throw e;
+
+      const d1 = parseDate(from), d2 = parseDate(to);
+      if (!d1 || !d2) throw e;
+
+      const days = [];
+      for (let d = new Date(d1); d <= d2; d = addDays(d, 1)) days.push(fmtDate(d));
+      const results = await Promise.all(days.map(async (date)=>{
+        const r = await apiGet({ fn:"listShift", date });
+        return (r.items || []);
+      }));
+      return results.flat();
+    }
+  }
+
+  function groupByDate(items){
+    const m = {};
+    for (const x of (items||[])){
+      const date = x.date || x.DATE || x.Date || x.day;
+      if (!date) continue;
+      const k = String(date).trim();
+      (m[k] ||= []).push(normalizeItem(x, k));
+    }
+    // 安定ソート（スタッフ→開始）
+    Object.keys(m).forEach(k=>{
+      m[k].sort((a,b)=>(a.staff_id||"").localeCompare(b.staff_id||"") || (a.start||"").localeCompare(b.start||""));
+    });
+    return m;
+  }
+
+  function normalizeItem(x, dateKey){
+    const staff_id = x.staff_id || x.STAFF_ID || x.staff || "";
+    const name = x.name || x.NAME || state.staffMap[staff_id] || "";
+    const start = x.start || x.START || "";
+    const end   = x.end   || x.END   || "";
+    return { date: dateKey, staff_id, name, start, end };
+  }
+
+  function renderDayList(items){
     el.list.innerHTML = "";
     if (!items.length){
       el.list.innerHTML = `<div class="hint">この日のシフトはありません</div>`;
       return;
     }
     items.forEach(x=>{
+      const nm = x.name || state.staffMap[x.staff_id] || "";
+      const label = nm ? nm : x.staff_id;
       const div = document.createElement("div");
       div.className = "item";
       div.innerHTML = `
         <div>
-          <b>${x.name ? x.name : x.staff_id}</b>
-          <div class="hint">${x.staff_id} / ${x.start}〜${x.end}</div>
+          <b>${esc(label)}</b>
+          <div class="hint">${esc(x.staff_id)} / ${esc(x.start)}〜${esc(x.end)}</div>
         </div>
         <div class="row">
-          <button class="danger" data-del="1" data-date="${x.date}" data-staff="${x.staff_id}">削除</button>
+          <button class="danger" data-del="1" data-date="${esc(x.date)}" data-staff="${esc(x.staff_id)}">削除</button>
         </div>
       `;
       el.list.appendChild(div);
@@ -245,7 +435,7 @@
         try{
           await apiPost({ fn:"deleteShift", date, staff_id: staff });
           setStatus("削除しました");
-          await loadShift();
+          await loadByMode();
         }catch(e){
           setStatus("削除失敗: " + e.message, true);
         }finally{
@@ -255,7 +445,104 @@
     });
   }
 
-  el.btnLoad.addEventListener("click", loadShift);
+  function renderWeek(from){
+    el.weekWrap.innerHTML = "";
+    for (let i=0;i<7;i++){
+      const d = addDays(from, i);
+      const key = fmtDate(d);
+      const items = state.byDate[key] || [];
+
+      const box = document.createElement("div");
+      box.className = "wkDay";
+      box.innerHTML = `
+        <div class="wkDayTitle">
+          <div>${esc(key)}（${dowJP(d.getDay())}）</div>
+          <button data-jump="${esc(key)}">日表示へ</button>
+        </div>
+        <div class="wkItems">
+          ${
+            items.length
+              ? items.map(x=>`
+                <div class="wkItem">
+                  <div>${esc(x.name || x.staff_id)} <div class="sub">${esc(x.staff_id)}</div></div>
+                  <div>${esc(x.start)}〜${esc(x.end)}</div>
+                </div>
+              `).join("")
+              : `<div class="hint">シフトなし</div>`
+          }
+        </div>
+      `;
+      el.weekWrap.appendChild(box);
+    }
+
+    el.weekWrap.querySelectorAll("button[data-jump]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        el.date.value = b.getAttribute("data-jump");
+        el.viewMode.value = "day";
+        loadByMode();
+      });
+    });
+  }
+
+  function renderMonth(monthDate){
+    // header label
+    el.monthLabel.textContent = `${monthDate.getFullYear()}/${pad2(monthDate.getMonth()+1)}`;
+
+    // DOW header
+    el.calDow.innerHTML = "";
+    ["月","火","水","木","金","土","日"].forEach(s=>{
+      const d = document.createElement("div");
+      d.className = "calDow";
+      d.textContent = s;
+      el.calDow.appendChild(d);
+    });
+
+    // grid (6 weeks)
+    el.calGrid.innerHTML = "";
+    const first = startOfMonth(monthDate);
+    const start = startOfWeek(first);
+    const selected = parseDate(el.date.value);
+
+    for (let i=0;i<42;i++){
+      const d = addDays(start, i);
+      const key = fmtDate(d);
+      const items = state.byDate[key] || [];
+      const inMonth = (d.getMonth() === monthDate.getMonth());
+      const cell = document.createElement("div");
+      cell.className = "calCell" + (inMonth ? "" : " mute") + (selected && fmtDate(selected)===key ? " active" : "");
+      cell.innerHTML = `
+        <div class="calNum">${esc(String(d.getDate()))}</div>
+        ${items.length ? `<div class="calBadge">🟢 ${items.length}件</div>` : `<div class="hint"> </div>`}
+      `;
+      if (inMonth){
+        cell.addEventListener("click", ()=>{
+          el.date.value = key;
+          el.viewMode.value = "day";
+          loadByMode();
+        });
+      }
+      el.calGrid.appendChild(cell);
+    }
+  }
+
+  function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+  function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+  function startOfWeek(d){
+    // Monday start
+    const x = new Date(d);
+    const day = x.getDay(); // 0 Sun ... 6 Sat
+    const diff = (day === 0) ? -6 : (1 - day); // bring to Monday
+    x.setDate(x.getDate() + diff);
+    x.setHours(0,0,0,0);
+    return x;
+  }
+  function dowJP(n){ return ["日","月","火","水","木","金","土"][n] || ""; }
+
+  el.btnLoad.addEventListener("click", loadByMode);
+
+  el.viewMode.addEventListener("change", ()=>{
+    loadByMode();
+  });
 
   el.btnClear.addEventListener("click", ()=>{
     el.start.value = "";
@@ -281,12 +568,27 @@
       setStatus("保存中…");
       await apiPost({ fn:"upsertShift", date, staff_id: staff, start, end });
       setStatus("保存しました");
-      await loadShift();
+      await loadByMode();
     }catch(e){
       setStatus("保存失敗: " + e.message, true);
     }finally{
       el.btnSave.disabled = false;
     }
+  });
+
+  el.btnPrevMonth.addEventListener("click", ()=>{
+    state.monthCursor = startOfMonth(new Date(state.monthCursor.getFullYear(), state.monthCursor.getMonth()-1, 1));
+    el.viewMode.value = "month";
+    // date欄も月に合わせておく
+    el.date.value = `${state.monthCursor.getFullYear()}/${pad2(state.monthCursor.getMonth()+1)}/01`;
+    loadByMode();
+  });
+
+  el.btnNextMonth.addEventListener("click", ()=>{
+    state.monthCursor = startOfMonth(new Date(state.monthCursor.getFullYear(), state.monthCursor.getMonth()+1, 1));
+    el.viewMode.value = "month";
+    el.date.value = `${state.monthCursor.getFullYear()}/${pad2(state.monthCursor.getMonth()+1)}/01`;
+    loadByMode();
   });
 
   init();
