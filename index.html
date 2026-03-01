@@ -667,16 +667,17 @@
     }
   }
 
-  function renderWeekCalendar_(monday, items){
+ function renderWeekCalendar_(monday, items){
     const days = ["月","火","水","木","金","土","日"];
     const byDate = {};
     items.forEach(x=>{
-      const d = String(x.date||"").trim();
+      const rawDate = String(x.date||"").trim();
+      const d = normalizeDateAny(rawDate); // ★ここを追加！（ゼロ埋めを統一）
       if(!d) return;
       if(!byDate[d]) byDate[d] = [];
       byDate[d].push(x);
     });
-
+   
     // header
     let html = `<thead><tr>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead>`;
     html += `<tbody><tr>`;
