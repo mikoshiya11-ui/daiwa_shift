@@ -373,19 +373,38 @@
     return j;
   }
 
-  async function apiGet(params){
-    const u = new URL(API_URL);
-    u.searchParams.set("token", TOKEN);
-    Object.entries(params).forEach(([k,v])=>u.searchParams.set(k, v));
-    return await fetchJson(u.toString(), { method:"GET" });
-  }
+ async function apiGet(params){
+  const u = new URL(API_URL);
+  u.searchParams.set("token", TOKEN);
 
-  async function apiPost(params){
-    const body = new URLSearchParams();
-    body.set("token", TOKEN);
-    Object.entries(params).forEach(([k,v])=>body.set(k, v));
-    return await fetchJson(API_URL, { method:"POST", body });
-  }
+  // ★ GASキャッシュ対策（毎回URLを変える）
+  u.searchParams.set("_t", Date.now());
+
+  Object.entries(params).forEach(([k,v])=>{
+    u.searchParams.set(k, v);
+  });
+
+  return await fetchJson(u.toString(), {
+    method: "GET",
+    cache: "no-store"
+  });
+}
+  async function apiGet(params){
+  const u = new URL(API_URL);
+  u.searchParams.set("token", TOKEN);
+
+  // ★ GASキャッシュ対策（毎回URLを変える）
+  u.searchParams.set("_t", Date.now());
+
+  Object.entries(params).forEach(([k,v])=>{
+    u.searchParams.set(k, v);
+  });
+
+  return await fetchJson(u.toString(), {
+    method: "GET",
+    cache: "no-store"
+  });
+}
 
   function syncDateInputsFromPick(){
     const d = parseYmdDash(el.datePick.value);
