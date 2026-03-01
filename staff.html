@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DAIWA Shift (STAFF)</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:rgba(255,255,255,.06);
+      --bd:rgba(255,255,255,.10);
+      --tx:#e8eefc;
+      --mut:#aab6d3;
+      --warn:#cfa7ff;
+      --shadow: 0 20px 70px rgba(0,0,0,.35);
+      --radius:18px;
+      --btnH:54px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+      background:var(--bg);
+      color:var(--tx);
+      -webkit-font-smoothing:antialiased;
+      text-rendering:optimizeLegibility;
+    }
+    .wrap{max-width:980px;margin:0 auto;padding:18px 14px 34px;}
+    .card{
+      background:var(--card);
+      border:1px solid var(--bd);
+      border-radius:var(--radius);
+      padding:14px 14px 16px;
+      box-shadow:var(--shadow);
+    }
+    h1{margin:0 0 10px;font-size:20px;font-weight:950;display:flex;gap:10px;align-items:center}
+    .mut{color:var(--mut);font-weight:900}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;}
+    @media(min-width:860px){.grid{grid-template-columns:1fr 360px;}}
+    input,button{
+      border-radius:14px;border:1px solid var(--bd);
+      background:rgba(0,0,0,.20);color:var(--tx);
+      padding:12px 14px;font-weight:900;font-size:16px;
+      min-height:var(--btnH);
+    }
+    input[type="date"]{padding:10px 12px}
+    button{cursor:pointer}
+    button.ghost{background:rgba(255,255,255,.06)}
+    button:disabled{opacity:.35;cursor:not-allowed}
+    .status{
+      margin-top:10px;padding:12px 14px;border-radius:14px;
+      background:rgba(0,0,0,.25);
+      min-height:46px;white-space:pre-wrap;font-weight:950
+    }
+    .status.bad{background:rgba(255,77,109,.12);box-shadow:inset 0 0 0 1px rgba(255,77,109,.35)}
+    .box{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:12px}
+    .list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .item{
+      display:grid;grid-template-columns:1fr;
+      gap:10px;align-items:center;padding:12px 14px;
+      border-radius:14px;border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05)
+    }
+    .item b{font-size:16px}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);font-weight:950}
+    .hint{margin-top:8px;color:rgba(255,255,255,.45);font-size:12px;line-height:1.6}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{min-height:44px;padding:10px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-weight:950}
+    .tab.on{background:rgba(40,209,124,.18);border-color:rgba(40,209,124,.45)}
+    .badge.warn{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:950;background:rgba(207,167,255,.14);border:1px solid rgba(207,167,255,.35)}
+    .cal{width:100%;border-collapse:separate;border-spacing:8px}
+    .cal th{color:rgba(255,255,255,.60);font-size:12px;text-align:left;padding:0 4px}
+    .cal td{
+      vertical-align:top;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      border-radius:14px;
+      padding:10px;
+      min-height:92px;
+    }
+    .cal .day{font-weight:950}
+    .cal .date{color:rgba(255,255,255,.55);font-size:12px;margin-left:6px}
+    .cal .mini{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+    .mini .s{
+      display:flex;justify-content:space-between;gap:8px;
+      font-size:12px;font-weight:900;color:rgba(255,255,255,.86);
+      padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.08);
+    }
+    .mini .s span{white-space:nowrap}
+    .hr{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>🗓️ DAIWA Shift (スタッフ用)</h1>
+
+      <div class="grid">
+        <div>
+          <div class="row" style="justify-content:space-between">
+            <div class="mut">本日: <span id="today">-</span></div>
+          </div>
+
+          <div class="row" style="margin-top:10px;justify-content:space-between">
+            <div class="tabs">
+              <button class="tab on" id="tabDay">日付で見る</button>
+              <button class="tab" id="tabRange">カレンダーで見る</button>
+            </div>
+          </div>
+
+          <div id="viewDay">
+            <div class="box" style="margin-top:12px">
+              <div class="mut">日付</div>
+              <div class="row" style="margin-top:8px">
+                <input id="datePick" type="date" style="flex:1;min-width:220px">
+                <button id="btnLoad">この日のシフトを見る</button>
+              </div>
+            </div>
+
+            <div class="status" id="status">読込中…</div>
+
+            <div class="box" style="margin-top:12px">
+              <div class="mut">この日の出勤メンバー</div>
+              <div class="list" id="list"></div>
+            </div>
+          </div>
+
+          <div id="viewRange" style="display:none">
+            <div class="box" style="margin-top:12px">
+              <div class="mut">週間カレンダー</div>
+              <div class="row" style="margin-top:10px">
+                <button id="btnPrevWeek">← 前週</button>
+                <button id="btnThisWeek" class="ghost">今週</button>
+                <button id="btnNextWeek">次週 →</button>
+                <div class="pill">週: <span id="weekLabel">-</span></div>
+              </div>
+              <div class="hr"></div>
+              <table class="cal" id="cal"></table>
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="mut">お知らせ</div>
+          <div class="hint" style="margin-top:8px;line-height:1.8">
+            自分のシフトや、一緒に入るメンバーを確認できます。<br>
+            ※シフトの変更や希望がある場合は、店長に直接連絡してください。
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ====== ★店長用と同じURLをここに貼り付けてください ======
+  const API_URL = "https://script.google.com/macros/s/AKfycbx80UCLAshx79arn3xal3ea6z3XWEAHSche7lsoRmnJAY8D8E4iiUB6R6Patxf1gMBu/exec";
+  const TOKEN   = "DAIWA_SHIFT_2026";
+  // =======================================
+
+  const el = {
+    today: qs("#today"),
+    tabDay: qs("#tabDay"),
+    tabRange: qs("#tabRange"),
+    viewDay: qs("#viewDay"),
+    viewRange: qs("#viewRange"),
+    datePick: qs("#datePick"),
+    btnLoad: qs("#btnLoad"),
+    list: qs("#list"),
+    status: qs("#status"),
+    btnPrevWeek: qs("#btnPrevWeek"),
+    btnThisWeek: qs("#btnThisWeek"),
+    btnNextWeek: qs("#btnNextWeek"),
+    weekLabel: qs("#weekLabel"),
+    cal: qs("#cal"),
+  };
+
+  function qs(s){ return document.querySelector(s); }
+  function setStatus(msg, bad=false){
+    el.status.textContent = msg;
+    el.status.classList.toggle("bad", !!bad);
+  }
+  function pad2(n){ return String(n).padStart(2,"0"); }
+
+  function toYmdSlashFromDate(d){ return `${d.getFullYear()}/${pad2(d.getMonth()+1)}/${pad2(d.getDate())}`; }
+  function toYmdDashFromDate(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+  function parseYmdDash(s){
+    const m = String(s||"").trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(!m) return null;
+    return new Date(Number(m[1]), Number(m[2])-1, Number(m[3]), 0,0,0);
+  }
+  function normalizeDateAny(s){
+    const t = String(s||"").trim();
+    let m = t.match(/^(\d{4})\/(\d{2})\/(\d{2})$/);
+    if (m) return `${m[1]}/${m[2]}/${m[3]}`;
+    m = t.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return `${m[1]}/${m[2]}/${m[3]}`;
+    return "";
+  }
+  function isTime(s){ return /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(s||"").trim()); }
+  function hhmmToMin(t){
+    const m = String(t||"").trim().match(/^(\d{2}):(\d{2})$/);
+    if(!m) return null;
+    return Number(m[1])*60 + Number(m[2]);
+  }
+
+  function setTab(which){
+    const day = (which === "day");
+    el.tabDay.classList.toggle("on", day);
+    el.tabRange.classList.toggle("on", !day);
+    el.viewDay.style.display = day ? "" : "none";
+    el.viewRange.style.display = day ? "none" : "";
+  }
+
+  async function fetchJson(url, opt){
+    const res = await fetch(url, opt);
+    const text = await res.text();
+    let j = null;
+    try{ j = JSON.parse(text); }catch(_){}
+    if(!res.ok) throw new Error((j && j.message) ? j.message : `HTTP ${res.status}`);
+    if(j && j.ok === false) throw new Error(j.message || "API error");
+    return j;
+  }
+
+  async function apiGet(params){
+    const u = new URL(API_URL);
+    u.searchParams.set("token", TOKEN);
+    u.searchParams.set("_t", Date.now());
+    Object.entries(params).forEach(([k,v])=> u.searchParams.set(k, v));
+    return await fetchJson(u.toString(), { method: "GET", cache: "no-store" });
+  }
+
+  async function init(){
+    try{
+      setStatus("読込中…");
+      const today = new Date();
+      el.datePick.value = toYmdDashFromDate(today);
+
+      const initData = await apiGet({ fn:"getInitial" });
+      el.today.textContent = initData.today || "-";
+
+      await loadShift();
+      await loadWeekCalendar();
+    }catch(e){
+      setStatus("エラー: " + e.message, true);
+    }
+  }
+
+  async function loadShift(){
+    const dateDash = el.datePick.value;
+    const date = normalizeDateAny(dateDash);
+    if(!date) return setStatus("日付が不正です", true);
+
+    setStatus("シフト読込中…");
+    el.btnLoad.disabled = true;
+    try{
+      const r = await apiGet({ fn:"listShift", date });
+      renderDayList(r.items || [], date);
+      setStatus(`表示中: ${date}`);
+    }catch(e){
+      setStatus("読込失敗: " + e.message, true);
+    }finally{
+      el.btnLoad.disabled = false;
+    }
+  }
+
+  function renderDayList(items, date){
+    el.list.innerHTML = "";
+    if(!items.length){
+      el.list.innerHTML = `<div class="hint">この日のシフトはありません</div>`;
+      return;
+    }
+    items.forEach(x=>{
+      const overnight = isTime(x.start) && isTime(x.end) && (hhmmToMin(x.end) < hhmmToMin(x.start));
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <div>
+          <b>${escapeHtml_(x.name || x.staff_id)}</b>
+          <div class="hint">
+            ${escapeHtml_(x.start)}〜${escapeHtml_(x.end)}
+            ${overnight ? `<span class="badge warn" style="margin-left:8px">🌙翌日</span>` : ``}
+          </div>
+        </div>
+      `;
+      el.list.appendChild(div);
+    });
+  }
+
+  // ===== Range / Calendar =====
+  function startOfWeekMonday_(d){
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0,0,0);
+    const day = x.getDay();
+    const diff = (day === 0) ? -6 : (1 - day);
+    x.setDate(x.getDate() + diff);
+    return x;
+  }
+  function weekLabel_(monday){
+    const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+    return `${toYmdSlashFromDate(monday)} 〜 ${toYmdSlashFromDate(sunday)}`;
+  }
+
+  async function loadWeekCalendar(anchorDate){
+    const base = anchorDate ? new Date(anchorDate) : parseYmdDash(el.datePick.value) || new Date();
+    const monday = startOfWeekMonday_(base);
+    el.weekLabel.textContent = weekLabel_(monday);
+
+    const from = toYmdSlashFromDate(monday);
+    const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+    const to = toYmdSlashFromDate(sunday);
+
+    try{
+      const r = await apiGet({ fn:"listShiftRange", from, to });
+      renderWeekCalendar_(monday, r.items || []);
+    }catch(e){
+      el.cal.innerHTML = `<tr><td class="hint">読込失敗: ${escapeHtml_(e.message)}</td></tr>`;
+    }
+  }
+
+  function renderWeekCalendar_(monday, items){
+    const days = ["月","火","水","木","金","土","日"];
+    const byDate = {};
+    items.forEach(x=>{
+      const d = normalizeDateAny(String(x.date||""));
+      if(!d) return;
+      if(!byDate[d]) byDate[d] = [];
+      byDate[d].push(x);
+    });
+    
+    let html = `<thead><tr>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead>`;
+    html += `<tbody><tr>`;
+    for(let i=0;i<7;i++){
+      const d = new Date(monday); d.setDate(monday.getDate()+i);
+      const ds = toYmdSlashFromDate(d);
+      const list = (byDate[ds] || []).slice().sort((a,b)=>{
+        if(a.start !== b.start) return a.start < b.start ? -1 : 1;
+        if(a.staff_id !== b.staff_id) return a.staff_id < b.staff_id ? -1 : 1;
+        return 0;
+      });
+
+      const minis = list.map(x=>{
+        const label = x.name || x.staff_id;
+        const overnight = isTime(x.start) && isTime(x.end) && (hhmmToMin(x.end) < hhmmToMin(x.start));
+        return `
+          <div class="s">
+            <span>${escapeHtml_(label)}</span>
+            <span>${escapeHtml_(x.start)}-${escapeHtml_(x.end)}${overnight ? "🌙" : ""}</span>
+          </div>
+        `;
+      }).join("");
+
+      html += `
+        <td>
+          <div class="day">${days[i]}<span class="date">${escapeHtml_(ds)}</span></div>
+          <div class="mini">${minis || `<div class="hint">-</div>`}</div>
+        </td>
+      `;
+    }
+    html += `</tr></tbody>`;
+    el.cal.innerHTML = html;
+  }
+
+  // ===== Events =====
+  el.tabDay.addEventListener("click", ()=>setTab("day"));
+  el.tabRange.addEventListener("click", ()=>setTab("range"));
+
+  el.datePick.addEventListener("change", ()=>{
+    loadShift();
+    loadWeekCalendar(parseYmdDash(el.datePick.value));
+  });
+
+  el.btnLoad.addEventListener("click", ()=>loadShift());
+
+  el.btnPrevWeek.addEventListener("click", async ()=>{
+    const base = parseYmdDash(el.datePick.value) || new Date();
+    base.setDate(base.getDate() - 7);
+    el.datePick.value = toYmdDashFromDate(base);
+    await loadWeekCalendar(base);
+  });
+
+  el.btnThisWeek.addEventListener("click", async ()=>{
+    const now = new Date();
+    el.datePick.value = toYmdDashFromDate(now);
+    await loadWeekCalendar(now);
+  });
+
+  el.btnNextWeek.addEventListener("click", async ()=>{
+    const base = parseYmdDash(el.datePick.value) || new Date();
+    base.setDate(base.getDate() + 7);
+    el.datePick.value = toYmdDashFromDate(base);
+    await loadWeekCalendar(base);
+  });
+
+  function escapeHtml_(s){
+    return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+
+  init();
+</script>
+</body>
+</html>
