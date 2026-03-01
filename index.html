@@ -128,7 +128,6 @@
             </div>
           </div>
 
-          <!-- ============ DAY VIEW ============ -->
           <div id="viewDay">
             <div class="box" style="margin-top:12px">
               <div class="mut">日付</div>
@@ -193,7 +192,6 @@
             </div>
           </div>
 
-          <!-- ============ RANGE / CALENDAR VIEW ============ -->
           <div id="viewRange" style="display:none">
             <div class="box" style="margin-top:12px">
               <div class="mut">期間で見る（一覧）</div>
@@ -373,38 +371,30 @@
     return j;
   }
 
- async function apiGet(params){
-  const u = new URL(API_URL);
-  u.searchParams.set("token", TOKEN);
-
-  // ★ GASキャッシュ対策（毎回URLを変える）
-  u.searchParams.set("_t", Date.now());
-
-  Object.entries(params).forEach(([k,v])=>{
-    u.searchParams.set(k, v);
-  });
-
-  return await fetchJson(u.toString(), {
-    method: "GET",
-    cache: "no-store"
-  });
-}
   async function apiGet(params){
-  const u = new URL(API_URL);
-  u.searchParams.set("token", TOKEN);
+    const u = new URL(API_URL);
+    u.searchParams.set("token", TOKEN);
 
-  // ★ GASキャッシュ対策（毎回URLを変える）
-  u.searchParams.set("_t", Date.now());
+    // ★ GASキャッシュ対策（毎回URLを変える）
+    u.searchParams.set("_t", Date.now());
 
-  Object.entries(params).forEach(([k,v])=>{
-    u.searchParams.set(k, v);
-  });
+    Object.entries(params).forEach(([k,v])=>{
+      u.searchParams.set(k, v);
+    });
 
-  return await fetchJson(u.toString(), {
-    method: "GET",
-    cache: "no-store"
-  });
-}
+    return await fetchJson(u.toString(), {
+      method: "GET",
+      cache: "no-store"
+    });
+  }
+
+  // ★ 復活させた apiPost（データ保存用）
+  async function apiPost(params){
+    const body = new URLSearchParams();
+    body.set("token", TOKEN);
+    Object.entries(params).forEach(([k,v])=>body.set(k, v));
+    return await fetchJson(API_URL, { method:"POST", body });
+  }
 
   function syncDateInputsFromPick(){
     const d = parseYmdDash(el.datePick.value);
@@ -667,7 +657,7 @@
     }
   }
 
- function renderWeekCalendar_(monday, items){
+  function renderWeekCalendar_(monday, items){
     const days = ["月","火","水","木","金","土","日"];
     const byDate = {};
     items.forEach(x=>{
@@ -677,7 +667,7 @@
       if(!byDate[d]) byDate[d] = [];
       byDate[d].push(x);
     });
-   
+    
     // header
     let html = `<thead><tr>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead>`;
     html += `<tbody><tr>`;
@@ -838,4 +828,4 @@
   init();
 </script>
 </body>
-</html> 
+</html>
