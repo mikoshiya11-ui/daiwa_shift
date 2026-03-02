@@ -50,6 +50,30 @@
     .cal .mini{margin-top:8px;display:flex;flex-direction:column;gap:6px}
     .mini .s{ display:flex;justify-content:space-between;gap:8px; font-size:12px;font-weight:900;color:rgba(255,255,255,.86); padding:6px 8px;border-radius:10px;background:rgba(0,0,0,.20);border:1px solid rgba(255,255,255,.08); }
     .hr{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
+
+    /* =========================================
+       📱 スマホ用カレンダーUI（縦並び自動変換）
+       ========================================= */
+    @media (max-width: 768px) {
+      .cal, .cal tbody, .cal tr, .cal td {
+        display: block; /* 表の構造を解除してブロックにする */
+        width: 100%;
+      }
+      .cal thead {
+        display: none; /* スマホでは上の曜日ヘッダー（月火水…）を隠す */
+      }
+      .cal td {
+        margin-bottom: 12px; /* 1日ごとのカードの間に隙間を空ける */
+        border: 1px solid rgba(255,255,255,.15);
+        background: rgba(255,255,255,.05);
+      }
+      .cal .day {
+        font-size: 16px; /* 日付部分を少し目立たせる */
+        border-bottom: 1px solid rgba(255,255,255,.1);
+        padding-bottom: 8px;
+        margin-bottom: 10px;
+      }
+    }
   </style>
 </head>
 
