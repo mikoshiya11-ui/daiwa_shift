@@ -33,6 +33,30 @@
     .tab.on{background:rgba(40,209,124,.18);border-color:rgba(40,209,124,.45)}
     .hint{margin-top:8px;color:rgba(255,255,255,.45);font-size:12px;line-height:1.6}
     .two{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;}
+
+    /* =========================================
+       📱 スマホ用カレンダーUI（縦並び自動変換）
+       ========================================= */
+    @media (max-width: 768px) {
+      .cal, .cal tbody, .cal tr, .cal td {
+        display: block; /* 表の構造を解除してブロックにする */
+        width: 100%;
+      }
+      .cal thead {
+        display: none; /* スマホでは上の曜日ヘッダー（月火水…）を隠す */
+      }
+      .cal td {
+        margin-bottom: 12px; /* 1日ごとのカードの間に隙間を空ける */
+        border: 1px solid rgba(255,255,255,.15);
+        background: rgba(255,255,255,.05);
+      }
+      .cal .day {
+        font-size: 16px; /* 日付部分を少し目立たせる */
+        border-bottom: 1px solid rgba(255,255,255,.1);
+        padding-bottom: 8px;
+        margin-bottom: 10px;
+      }
+    }
   </style>
 </head>
 
